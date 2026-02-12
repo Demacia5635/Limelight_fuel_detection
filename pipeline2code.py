@@ -83,8 +83,13 @@ def runPipeline(image, llrobot):
    
     contours, _ = cv2.findContours(img_threshold, 
                                    cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-  
-    largestContour = np.array([[]])
+
+    
+    
+    largestContour = cv2.contourArea()
+    for c in contours:
+        if (cv2.contourArea(c) > largestContour):
+            largestContour = cv2.contourArea(c)
     
     # Find densest contour area center
     tx, ty, cx, cy = find_densest_contour_center(contours, img.shape)
