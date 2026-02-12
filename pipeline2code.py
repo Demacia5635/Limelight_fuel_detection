@@ -83,16 +83,20 @@ def runPipeline(image, llrobot):
    
     contours, _ = cv2.findContours(img_threshold, 
                                    cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-    
-    
-    largestContour = cv2.contourArea()
-    for c in contours:
-        if (cv2.contourArea(c) > largestContour):
-            largestContour = cv2.contourArea(c)
-    
+  
     # Find densest contour area center
     tx, ty, cx, cy = find_densest_contour_center(contours, img.shape)
+    
+    # Create a synthetic contour at the calculated center point
+    # This will be a small rectangle centered at (cx, cy)
+    # Limelight will use this contour's center for tx/ty calculations
+    contour_size = 10  # Size of the synthetic contour
+    largestContour = np.array([
+        [[cx - contour_size, cy - contour_size]],
+        [[cx + contour_size, cy - contour_size]],
+        [[cx + contour_size, cy + contour_size]],
+        [[cx - contour_size, cy + contour_size]]
+    ], dtype=np.int32)
     
     # Detect circles
     circles = cv2.HoughCircles(img_gray, cv2.HOUGH_GRADIENT, 
