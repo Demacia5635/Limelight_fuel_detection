@@ -54,24 +54,23 @@ def find_densest_contour_center(contours, img_shape):
     return tx, ty, int(cx), int(cy)
 
 def runPipeline(image, llrobot):
-    # Get parameters from Limelight's built-in sliders
-    # Access via llrobot dictionary - these map to the sliders in the web UI
-    minDist = llrobot.get(0, 30)      # Slider 0
-    param1 = llrobot.get(1, 50)        # Slider 1
-    param2 = llrobot.get(2, 20)        # Slider 2
-    minRadius = llrobot.get(3, 5)      # Slider 3
-    maxRadius = llrobot.get(4, 150)    # Slider 4
+    # ===== TUNABLE PARAMETERS - Adjust these values =====
+    # Circle detection parameters
+    minDist = 30        # Minimum distance between circle centers
+    param1 = 50         # Canny edge detection threshold
+    param2 = 20         # Circle detection threshold (lower = more circles)
+    minRadius = 5       # Minimum circle radius in pixels
+    maxRadius = 150     # Maximum circle radius in pixels
     
-    hue_min = llrobot.get(5, 20)       # Slider 5
-    hue_max = llrobot.get(6, 77)       # Slider 6
-    sat_min = llrobot.get(7, 120)      # Slider 7
-    sat_max = llrobot.get(8, 255)      # Slider 8
-    val_min = llrobot.get(9, 50)       # Slider 9
-    val_max = llrobot.get(10, 255)     # Slider 10
-    
-    # Ensure valid values
-    minDist = max(1, int(minDist))
-    param2 = max(1, int(param2))
+    # HSV color filtering parameters
+    # Hue: 0-179 (color), Saturation: 0-255 (color intensity), Value: 0-255 (brightness)
+    hue_min = 20        # Minimum hue (e.g., 20-40 = yellow/orange)
+    hue_max = 77        # Maximum hue
+    sat_min = 120       # Minimum saturation
+    sat_max = 255       # Maximum saturation
+    val_min = 50        # Minimum brightness
+    val_max = 255       # Maximum brightness
+    # ====================================================
     
     img = cv2.medianBlur(image, 5)
     img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
