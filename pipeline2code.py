@@ -82,6 +82,21 @@ def runPipeline(image, llrobot):
    
     contours, _ = cv2.findContours(img_threshold, 
                                    cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # ===== FILTER CONTOURS =====
+    # Remove very large contours (robots) and very small contours (noise)
+    min_contour_area = 100      # Minimum area in pixels (adjust based on your objects)
+    max_contour_area = 10000    # Maximum area in pixels (adjust to exclude robots)
+    
+    filtered_contours = []
+    for contour in contours:
+        area = cv2.contourArea(contour)
+        if min_contour_area < area < max_contour_area:
+            filtered_contours.append(contour)
+    
+    # Use filtered contours for everything
+    contours = filtered_contours
+    # ===========================
   
     # Find densest contour area center
     tx, ty, cx, cy = find_densest_contour_center(contours, img.shape)
@@ -107,13 +122,30 @@ def runPipeline(image, llrobot):
                               maxRadius=int(maxRadius))
 
     circles_count = 0
-    # Draw circles
+    # Draw circles and count only those inside detected contours
     if circles is not None:
-        circles_count = len(circles[0])
         circles = np.uint16(np.around(circles))
         for i in circles[0, :]:
-            cv2.circle(img, (i[0], i[1]), i[2], (0, 255, 0), 2)
-            cv2.circle(img, (i[0], i[1]), 2, (0, 0, 255), 3)
+            # Check if circle center is inside any contour
+            circle_center = (i[0], i[1])
+            is_inside_contour = False
+            
+            for contour in contours:
+                # Check if point is inside this contour
+                result = cv2.pointPolygonTest(contour, circle_center, False)
+                if result >= 0:  # Point is inside or on the contour
+                    is_inside_contour = True
+                    break
+            
+            # Only count and draw circles that are inside contours
+            if is_inside_contour:
+                circles_count += 1
+                cv2.circle(img, circle_center, i[2], (0, 255, 0), 2)  # Green outline
+                cv2.circle(img, circle_center, 2, (0, 0, 255), 3)      # Red center
+            else:
+                # Draw rejected circles in gray for debugging
+                cv2.circle(img, circle_center, i[2], (128, 128, 128), 1)
+                cv2.circle(img, circle_center, 2, (128, 128, 128), 2)
     
     # Draw contours
     cv2.drawContours(img, contours, -1, (255, 0, 0), 2)
